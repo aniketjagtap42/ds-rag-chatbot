@@ -1,0 +1,57 @@
+# docker-compose.yml
+# ─────────────────────────────────────────────────────
+# Defines how to run the DS Notes Assistant container.
+#
+# VERSION LINE REMOVED:
+# 'version: "3.8"' is obsolete in modern Docker
+# Removing it eliminates the startup warning
+#
+# TWO VOLUMES MOUNTED:
+# chroma_db/ → vector data persists outside container
+# logs/      → log files accessible on your laptop
+# ─────────────────────────────────────────────────────
+
+services:
+
+  ds-rag-api:
+
+    # ── Build ──────────────────────────────────────────
+    # Build image from Dockerfile in current directory
+    build: .
+
+    # ── Container name ─────────────────────────────────
+    # Makes docker ps output readable
+    # Also used in: docker logs ds_rag_chatbot
+    container_name: ds_rag_chatbot
+
+    # ── Ports ──────────────────────────────────────────
+    # your_laptop:container
+    # Browser connects to localhost:8000
+    # Container uvicorn runs on 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+
+    # ── Environment ────────────────────────────────────
+    # Loads your .env file into the container
+    # GROQ_API_KEY and all settings available inside
+    # .env is in .dockerignore so never baked into image
+    env_file:
+      - .env
+
+    # ── Volumes ────────────────────────────────────────
+    # Syncs folders between laptop and container
+    volumes:
+      # Vector database — persists between container restarts
+      # If not mounted: rebuild chroma_db every time
+      - ./chroma_db:/app/chroma_db
+
+      # ADDED: Logs folder — read logs from your laptop
+      # Open logs/app.log in VS Code to see everything
+      # If not mounted: logs lost when container stops
+      - ./logs:/app/logs
+
+    # ── Restart policy ─────────────────────────────────
+    # unless-stopped = restart if crashes
+    #                  but NOT if you manually docker-compose down
+    # Options: no | always | on-failure | unless-stopped
+    restart: unless-stopped

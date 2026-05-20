@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DS Notes Assistant</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; height: 100vh; display: flex; align-items: center; justify-content: center; }
+.container { width: 820px; height: 92vh; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; overflow: hidden; }
+.header { background: #1a1a2e; color: white; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+.header-left h1 { font-size: 18px; margin-bottom: 2px; font-family: Arial, sans-serif; }
+.header-left p { font-size: 12px; opacity: 0.7; font-family: Arial, sans-serif; }
+.status-dot { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.chat-box { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; background: #fafafa; }
+.message { display: flex; flex-direction: column; max-width: 78%; }
+.message.user { align-self: flex-end; align-items: flex-end; }
+.message.bot { align-self: flex-start; align-items: flex-start; }
+.bubble { padding: 13px 18px; border-radius: 16px; font-size: 14px; line-height: 1.8; word-wrap: break-word; font-family: Arial, sans-serif; }
+.user .bubble { background: #1a1a2e; color: white; border-bottom-right-radius: 4px; }
+.bot .bubble { background: white; color: #333; border: 1px solid #e8e8e8; border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.bot .bubble.out-of-scope { background: #fff8e1; border-color: #ffe082; color: #5d4037; }
+.bot .bubble.error { background: #ffeaea; border-color: #ffcdd2; color: #c62828; }
+.bubble p { margin-bottom: 8px; font-family: Arial, sans-serif; }
+.bubble ul, .bubble ol { margin: 8px 0 8px 20px; font-family: Arial, sans-serif; }
+.bubble li { margin-bottom: 4px; font-family: Arial, sans-serif; }
+.bubble strong { font-weight: bold; font-family: Arial, sans-serif; }
+.bubble pre { background: #1e1e2e; color: #cdd6f4; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; margin: 10px 0; font-family: monospace; white-space: pre; }
+.bubble code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 12px; color: #c0392b; }
+.meta { font-size: 11px; color: #aaa; margin-top: 5px; padding: 0 4px; font-family: Arial, sans-serif; }
+.source-card { background: #f0f7ff; border-left: 3px solid #1a73e8; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: #1a1a2e; margin-top: 4px; max-width: 78%; font-family: Arial, sans-serif; }
+.source-card .source-title { font-weight: bold; color: #1a73e8; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.source-card .chunk { background: white; border: 1px solid #dce8fb; border-radius: 6px; padding: 8px; margin-bottom: 6px; font-size: 12px; color: #444; line-height: 1.5; font-family: Arial, sans-serif; }
+.rewrite-card { background: #f0fff4; border-left: 3px solid #2ecc71; border-radius: 0 8px 8px 0; padding: 8px 14px; font-size: 12px; color: #1a1a2e; margin-top: 4px; max-width: 78%; font-family: Arial, sans-serif; }
+.rewrite-card .rewrite-title { font-weight: bold; color: #27ae60; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.typing { display: flex; gap: 5px; padding: 14px 18px; background: white; border: 1px solid #e8e8e8; border-radius: 16px; border-bottom-left-radius: 4px; width: fit-content; }
+.typing span { width: 7px; height: 7px; background: #bbb; border-radius: 50%; animation: bounce 1.3s infinite; }
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-7px)} }
+.input-area { padding: 16px 20px; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center; background: white; }
+input[type="text"] { flex: 1; padding: 13px 18px; border: 1.5px solid #e0e0e0; border-radius: 28px; font-size: 14px; outline: none; transition: border 0.2s; background: #fafafa; font-family: Arial, sans-serif; }
+input[type="text"]:focus { border-color: #1a1a2e; background: white; }
+.send-btn { padding: 13px 26px; background: #1a1a2e; color: white; border: none; border-radius: 28px; font-size: 14px; cursor: pointer; font-weight: 500; font-family: Arial, sans-serif; }
+.send-btn:hover { background: #16213e; }
+.send-btn:disabled { background: #ccc; cursor: not-allowed; }
+.clear-btn { padding: 10px 16px; background: transparent; color: #999; border: 1.5px solid #e0e0e0; border-radius: 28px; font-size: 12px; cursor: pointer; font-family: Arial, sans-serif; }
+.clear-btn:hover { background: #f5f5f5; color: #555; }
+.session-info { font-size: 11px; color: #aaa; white-space: nowrap; font-family: Arial, sans-serif; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-left">
+      <h1><span class="status-dot"></span>DS Notes Assistant</h1>
+      <p>Powered by RAG - answers from your own study notes</p>
+    </div>
+    <div class="session-info" id="sessionInfo">Session loading...</div>
+  </div>
+
+  <div class="chat-box" id="chatBox">
+    <div class="message bot">
+      <div class="bubble">Hello! I am your DS Notes Assistant. I can answer any question from your Data Science and Python study notes covering Python, OOP, Pandas, ML, Deep Learning, RAG, Git, and FastAPI. Go ahead and ask me anything!</div>
+      <div class="meta">DS Notes Assistant</div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input type="text" id="questionInput" placeholder="Ask anything from your notes..." onkeypress="handleKey(event)" autofocus />
+    <button class="clear-btn" onclick="clearSession()">New Chat</button>
+    <button class="send-btn" onclick="sendMessage()" id="sendBtn">Send</button>
+  </div>
+</div>
+
+<script>
+const sessionId = 'user_' + Math.random().toString(36).substr(2, 9);
+document.getElementById('sessionInfo').textContent = 'Session: ' + sessionId;
+
+function handleKey(e) {
+  if (e.key === 'Enter') sendMessage();
+}
+
+function formatText(text) {
+  // escape any accidental HTML first
+  text = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // code blocks with language tag
+  text = text.replace(/```[a-z]*\n?([\s\S]*?)```/g, '<pre>$1</pre>');
+
+  // inline code
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // bold
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+  // numbered list lines like "1. something"
+  text = text.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+
+  // bullet lines starting with -
+  text = text.replace(/^[-]\s+(.+)$/gm, '<li>$1</li>');
+
+  // wrap consecutive li items in ol/ul
+  text = text.replace(/(<li>[\s\S]*?<\/li>)(\s*<li>)/g, '$1$2');
+
+  // line breaks become <br> except inside pre blocks
+  var parts = text.split(/(<pre>[\s\S]*?<\/pre>)/g);
+  parts = parts.map(function(part) {
+    if (part.startsWith('<pre>')) return part;
+    return part.replace(/\n/g, '<br>');
+  });
+  return parts.join('');
+}
+
+function addMessage(role, content, meta, isOutOfScope, isError) {
+  var box = document.getElementById('chatBox');
+  var div = document.createElement('div');
+  div.className = 'message ' + role;
+
+  var bubble = document.createElement('div');
+  bubble.className = 'bubble' + (isError ? ' error' : isOutOfScope ? ' out-of-scope' : '');
+  bubble.innerHTML = formatText(content);
+
+  var metaDiv = document.createElement('div');
+  metaDiv.className = 'meta';
+  metaDiv.textContent = meta;
+
+  div.appendChild(bubble);
+  div.appendChild(metaDiv);
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addSourceCard(sources, rewritten, originalQuestion) {
+  var box = document.getElementById('chatBox');
+
+  if (rewritten && rewritten !== originalQuestion) {
+    var rc = document.createElement('div');
+    rc.className = 'rewrite-card';
+    rc.innerHTML = '<div class="rewrite-title">Query sent to RAG (rewritten for context)</div>' + rewritten;
+    box.appendChild(rc);
+  }
+
+  if (sources && sources.length > 0) {
+    var sc = document.createElement('div');
+    sc.className = 'source-card';
+    var html = '<div class="source-title">Sources from your notes (' + sources.length + ' chunks used)</div>';
+    sources.forEach(function(s, i) {
+      var content = typeof s === 'object' ? s.content : s;
+      html += '<div class="chunk"><strong>Chunk ' + (i + 1) + ':</strong> ' + content + '</div>';
+    });
+    sc.innerHTML = html;
+    box.appendChild(sc);
+  }
+
+  box.scrollTop = box.scrollHeight;
+}
+
+function addTyping() {
+  var box = document.getElementById('chatBox');
+  var t = document.createElement('div');
+  t.id = 'typing';
+  t.className = 'typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  box.appendChild(t);
+  box.scrollTop = box.scrollHeight;
+}
+
+function removeTyping() {
+  var t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+  var input = document.getElementById('questionInput');
+  var question = input.value.trim();
+  if (!question) return;
+
+  var btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  input.value = '';
+
+  addMessage('user', question, 'You - ' + new Date().toLocaleTimeString());
+  addTyping();
+
+  try {
+    var res = await fetch('http://127.0.0.1:8000/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: question, session_id: sessionId })
+    });
+    var data = await res.json();
+    removeTyping();
+
+    var meta = 'DS Notes Assistant - ' + new Date().toLocaleTimeString();
+    addMessage('bot', data.answer, meta, !data.in_scope, false);
+
+    if (data.in_scope) {
+      addSourceCard(data.sources, data.rewritten_query, question);
+    }
+
+  } catch (err) {
+    removeTyping();
+    addMessage('bot', 'Cannot connect to server. Make sure uvicorn is running on port 8000.', 'Connection Error', false, true);
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+async function clearSession() {
+  try {
+    await fetch('http://127.0.0.1:8000/session/' + sessionId, { method: 'DELETE' });
+  } catch(e) {}
+  document.getElementById('chatBox').innerHTML = '';
+  addMessage('bot', 'New chat started! Ask me anything from your Data Science and Python notes.', 'DS Notes Assistant', false, false);
+}
+</script>
+</body>
+</html>
