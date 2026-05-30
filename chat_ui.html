@@ -1,224 +1,773 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DS Notes Assistant</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: Arial, sans-serif; background: #f0f2f5; height: 100vh; display: flex; align-items: center; justify-content: center; }
-.container { width: 820px; height: 92vh; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; overflow: hidden; }
-.header { background: #1a1a2e; color: white; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
-.header-left h1 { font-size: 18px; margin-bottom: 2px; font-family: Arial, sans-serif; }
-.header-left p { font-size: 12px; opacity: 0.7; font-family: Arial, sans-serif; }
-.status-dot { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.chat-box { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; background: #fafafa; }
-.message { display: flex; flex-direction: column; max-width: 78%; }
-.message.user { align-self: flex-end; align-items: flex-end; }
-.message.bot { align-self: flex-start; align-items: flex-start; }
-.bubble { padding: 13px 18px; border-radius: 16px; font-size: 14px; line-height: 1.8; word-wrap: break-word; font-family: Arial, sans-serif; }
-.user .bubble { background: #1a1a2e; color: white; border-bottom-right-radius: 4px; }
-.bot .bubble { background: white; color: #333; border: 1px solid #e8e8e8; border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.bot .bubble.out-of-scope { background: #fff8e1; border-color: #ffe082; color: #5d4037; }
-.bot .bubble.error { background: #ffeaea; border-color: #ffcdd2; color: #c62828; }
-.bubble p { margin-bottom: 8px; font-family: Arial, sans-serif; }
-.bubble ul, .bubble ol { margin: 8px 0 8px 20px; font-family: Arial, sans-serif; }
-.bubble li { margin-bottom: 4px; font-family: Arial, sans-serif; }
-.bubble strong { font-weight: bold; font-family: Arial, sans-serif; }
-.bubble pre { background: #1e1e2e; color: #cdd6f4; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; margin: 10px 0; font-family: monospace; white-space: pre; }
-.bubble code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 12px; color: #c0392b; }
-.meta { font-size: 11px; color: #aaa; margin-top: 5px; padding: 0 4px; font-family: Arial, sans-serif; }
-.source-card { background: #f0f7ff; border-left: 3px solid #1a73e8; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: #1a1a2e; margin-top: 4px; max-width: 78%; font-family: Arial, sans-serif; }
-.source-card .source-title { font-weight: bold; color: #1a73e8; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-.source-card .chunk { background: white; border: 1px solid #dce8fb; border-radius: 6px; padding: 8px; margin-bottom: 6px; font-size: 12px; color: #444; line-height: 1.5; font-family: Arial, sans-serif; }
-.rewrite-card { background: #f0fff4; border-left: 3px solid #2ecc71; border-radius: 0 8px 8px 0; padding: 8px 14px; font-size: 12px; color: #1a1a2e; margin-top: 4px; max-width: 78%; font-family: Arial, sans-serif; }
-.rewrite-card .rewrite-title { font-weight: bold; color: #27ae60; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-.typing { display: flex; gap: 5px; padding: 14px 18px; background: white; border: 1px solid #e8e8e8; border-radius: 16px; border-bottom-left-radius: 4px; width: fit-content; }
-.typing span { width: 7px; height: 7px; background: #bbb; border-radius: 50%; animation: bounce 1.3s infinite; }
-.typing span:nth-child(2) { animation-delay: 0.2s; }
-.typing span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-7px)} }
-.input-area { padding: 16px 20px; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center; background: white; }
-input[type="text"] { flex: 1; padding: 13px 18px; border: 1.5px solid #e0e0e0; border-radius: 28px; font-size: 14px; outline: none; transition: border 0.2s; background: #fafafa; font-family: Arial, sans-serif; }
-input[type="text"]:focus { border-color: #1a1a2e; background: white; }
-.send-btn { padding: 13px 26px; background: #1a1a2e; color: white; border: none; border-radius: 28px; font-size: 14px; cursor: pointer; font-weight: 500; font-family: Arial, sans-serif; }
-.send-btn:hover { background: #16213e; }
-.send-btn:disabled { background: #ccc; cursor: not-allowed; }
-.clear-btn { padding: 10px 16px; background: transparent; color: #999; border: 1.5px solid #e0e0e0; border-radius: 28px; font-size: 12px; cursor: pointer; font-family: Arial, sans-serif; }
-.clear-btn:hover { background: #f5f5f5; color: #555; }
-.session-info { font-size: 11px; color: #aaa; white-space: nowrap; font-family: Arial, sans-serif; }
-</style>
+  <meta charset="UTF-8"/>
+  <!--
+    viewport meta tag — makes the UI work on mobile screens too.
+    width=device-width → use the device's actual width
+    initial-scale=1.0  → don't zoom in/out by default
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DS Notes Assistant</title>
+  <style>
+    /* ── Reset ───────────────────────────────────────────────────────
+       Remove default browser margin/padding on all elements.
+       box-sizing: border-box → padding included in width calculation
+       Makes layout predictable across all browsers.
+    ──────────────────────────────────────────────────────────────── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ── Body ────────────────────────────────────────────────────────
+       Centers the chat container on the screen.
+       height: 100vh → full viewport height
+       flexbox → easiest way to center both horizontally and vertically
+    ──────────────────────────────────────────────────────────────── */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Main container ──────────────────────────────────────────────
+       The white card that holds the entire chat UI.
+       Fixed width 820px, 92% of viewport height.
+       flex column → header on top, chat in middle, input at bottom.
+    ──────────────────────────────────────────────────────────────── */
+    .container {
+      width: 820px;
+      height: 92vh;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────
+       Dark top bar showing app name, status dot, session info.
+       justify-content: space-between → title left, session right.
+    ──────────────────────────────────────────────────────────────── */
+    .header {
+      background: #1a1a2e;
+      color: white;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0; /* prevents header from shrinking when chat grows */
+    }
+    .header-left h1 { font-size: 18px; margin-bottom: 2px; }
+    .header-left p  { font-size: 12px; opacity: 0.7; }
+
+    /* ── Status dot ──────────────────────────────────────────────────
+       Green pulsing dot next to the app name.
+       animation: pulse → fades in and out every 2 seconds
+       Shows the API is live and connected.
+    ──────────────────────────────────────────────────────────────── */
+    .status-dot {
+      width: 10px; height: 10px;
+      background: #2ecc71;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* ── API status badge ────────────────────────────────────────────
+       Shows "API Connected" or "API Offline" in the header.
+       Color changes green/red based on connection check.
+    ──────────────────────────────────────────────────────────────── */
+    .api-status {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .api-status.online  { background: #1a3a2a; color: #2ecc71; }
+    .api-status.offline { background: #3a1a1a; color: #e74c3c; }
+
+    /* ── Chat box ────────────────────────────────────────────────────
+       Scrollable area where messages appear.
+       flex: 1 → takes all available space between header and input.
+       overflow-y: auto → shows scrollbar only when needed.
+    ──────────────────────────────────────────────────────────────── */
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: #fafafa;
+    }
+
+    /* ── Message wrapper ─────────────────────────────────────────────
+       User messages align RIGHT. Bot messages align LEFT.
+       max-width: 78% → messages don't stretch full width (easier to read)
+    ──────────────────────────────────────────────────────────────── */
+    .message        { display: flex; flex-direction: column; max-width: 78%; }
+    .message.user   { align-self: flex-end;  align-items: flex-end; }
+    .message.bot    { align-self: flex-start; align-items: flex-start; }
+
+    /* ── Message bubble ──────────────────────────────────────────────
+       The actual chat bubble containing the message text.
+       User bubbles → dark background (like iMessage sent messages)
+       Bot bubbles  → white with border (like iMessage received)
+    ──────────────────────────────────────────────────────────────── */
+    .bubble {
+      padding: 13px 18px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.8;
+      word-wrap: break-word;
+    }
+    .user .bubble {
+      background: #1a1a2e;
+      color: white;
+      border-bottom-right-radius: 4px; /* flattens corner toward user side */
+    }
+    .bot .bubble {
+      background: white;
+      color: #333;
+      border: 1px solid #e8e8e8;
+      border-bottom-left-radius: 4px; /* flattens corner toward bot side */
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    /* ── Special bubble states ───────────────────────────────────────
+       out-of-scope → yellow warning (question not in notes)
+       error        → red warning (connection or server error)
+    ──────────────────────────────────────────────────────────────── */
+    .bot .bubble.out-of-scope { background: #fff8e1; border-color: #ffe082; color: #5d4037; }
+    .bot .bubble.error        { background: #ffeaea; border-color: #ffcdd2; color: #c62828; }
+
+    /* ── Bubble content formatting ───────────────────────────────────
+       Styles for markdown-converted HTML inside bubbles.
+       pre → code blocks (dark background like VS Code)
+       code → inline code (light grey background)
+    ──────────────────────────────────────────────────────────────── */
+    .bubble p      { margin-bottom: 8px; }
+    .bubble ul,
+    .bubble ol     { margin: 8px 0 8px 20px; }
+    .bubble li     { margin-bottom: 4px; }
+    .bubble strong { font-weight: bold; }
+    .bubble pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+      margin: 10px 0;
+      font-family: monospace;
+      white-space: pre;
+    }
+    .bubble code {
+      background: #f0f0f0;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #c0392b;
+    }
+
+    /* ── Message metadata ────────────────────────────────────────────
+       Small grey text below each bubble showing sender + time.
+    ──────────────────────────────────────────────────────────────── */
+    .meta { font-size: 11px; color: #aaa; margin-top: 5px; padding: 0 4px; }
+
+    /* ── Source card ─────────────────────────────────────────────────
+       Blue card showing which chunks from the notes were used.
+       Appears below the bot's answer for in-scope questions.
+       border-left: blue stripe → visual indicator it's a source
+    ──────────────────────────────────────────────────────────────── */
+    .source-card {
+      background: #f0f7ff;
+      border-left: 3px solid #1a73e8;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #1a1a2e;
+      margin-top: 4px;
+      max-width: 78%;
+    }
+    .source-card .source-title {
+      font-weight: bold;
+      color: #1a73e8;
+      margin-bottom: 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .source-card .chunk {
+      background: white;
+      border: 1px solid #dce8fb;
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #444;
+      line-height: 1.5;
+    }
+
+    /* ── Rewrite card ────────────────────────────────────────────────
+       Green card showing the rewritten query (for follow-up questions).
+       Only appears when query was rewritten — shows transparency.
+       Users can see "this is what was actually searched."
+    ──────────────────────────────────────────────────────────────── */
+    .rewrite-card {
+      background: #f0fff4;
+      border-left: 3px solid #2ecc71;
+      border-radius: 0 8px 8px 0;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: #1a1a2e;
+      margin-top: 4px;
+      max-width: 78%;
+    }
+    .rewrite-card .rewrite-title {
+      font-weight: bold;
+      color: #27ae60;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Typing indicator ────────────────────────────────────────────
+       Three bouncing dots shown while waiting for API response.
+       Each dot has a staggered animation delay → wave effect.
+    ──────────────────────────────────────────────────────────────── */
+    .typing {
+      display: flex;
+      gap: 5px;
+      padding: 14px 18px;
+      background: white;
+      border: 1px solid #e8e8e8;
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+    }
+    .typing span {
+      width: 7px; height: 7px;
+      background: #bbb;
+      border-radius: 50%;
+      animation: bounce 1.3s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30%           { transform: translateY(-7px); }
+    }
+
+    /* ── Input area ──────────────────────────────────────────────────
+       Fixed bar at bottom with text input and buttons.
+       flex-shrink: 0 → never shrinks when chat fills up.
+    ──────────────────────────────────────────────────────────────── */
+    .input-area {
+      padding: 16px 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: white;
+      flex-shrink: 0;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 13px 18px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 28px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+      background: #fafafa;
+    }
+    input[type="text"]:focus { border-color: #1a1a2e; background: white; }
+
+    /* ── Buttons ─────────────────────────────────────────────────────
+       Send button → dark filled (primary action)
+       Clear button → outlined (secondary action)
+       disabled state → grey, not clickable (prevents double-send)
+    ──────────────────────────────────────────────────────────────── */
+    .send-btn {
+      padding: 13px 26px;
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 28px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .send-btn:hover    { background: #16213e; }
+    .send-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .clear-btn {
+      padding: 10px 16px;
+      background: transparent;
+      color: #999;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 28px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .clear-btn:hover { background: #f5f5f5; color: #555; }
+
+    /* ── Session info ────────────────────────────────────────────────
+       Small text in header showing current session ID.
+       Useful for debugging — you can match this to server logs.
+    ──────────────────────────────────────────────────────────────── */
+    .session-info { font-size: 11px; color: #aaa; white-space: nowrap; }
+
+    /* ── Character counter ───────────────────────────────────────────
+       Shows how many characters typed vs 1000 limit.
+       Turns red when approaching the limit.
+       WHY: API rejects questions over 1000 chars — warn user first.
+    ──────────────────────────────────────────────────────────────── */
+    .char-counter {
+      font-size: 11px;
+      color: #bbb;
+      white-space: nowrap;
+      min-width: 50px;
+      text-align: right;
+    }
+    .char-counter.warning { color: #e67e22; } /* orange at 800+ chars  */
+    .char-counter.danger  { color: #e74c3c; } /* red at 950+ chars     */
+  </style>
 </head>
 <body>
+
 <div class="container">
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────
+       Shows app name, connection status, and session ID.
+       The api-status badge is updated by checkApiStatus() on load.
+  ──────────────────────────────────────────────────────────────── -->
   <div class="header">
     <div class="header-left">
       <h1><span class="status-dot"></span>DS Notes Assistant</h1>
-      <p>Powered by RAG - answers from your own study notes</p>
+      <p>Powered by RAG — answers from your own study notes</p>
     </div>
-    <div class="session-info" id="sessionInfo">Session loading...</div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="api-status offline" id="apiStatus">Checking...</span>
+      <span class="session-info" id="sessionInfo">Session: loading...</span>
+    </div>
   </div>
 
+  <!-- ── CHAT BOX ───────────────────────────────────────────────────
+       Scrollable message feed. Welcome message shown on load.
+       New messages are appended here by addMessage().
+  ──────────────────────────────────────────────────────────────── -->
   <div class="chat-box" id="chatBox">
     <div class="message bot">
-      <div class="bubble">Hello! I am your DS Notes Assistant. I can answer any question from your Data Science and Python study notes covering Python, OOP, Pandas, ML, Deep Learning, RAG, Git, and FastAPI. Go ahead and ask me anything!</div>
+      <div class="bubble">
+        Hello! I am your DS Notes Assistant. Ask me anything from your
+        Data Science and Python study notes — Python, OOP, Pandas, ML,
+        Deep Learning, RAG, Git, and FastAPI.
+      </div>
       <div class="meta">DS Notes Assistant</div>
     </div>
   </div>
 
+  <!-- ── INPUT AREA ─────────────────────────────────────────────────
+       Text input + character counter + clear + send buttons.
+       onkeypress → send on Enter key
+       oninput    → update character counter live as user types
+  ──────────────────────────────────────────────────────────────── -->
   <div class="input-area">
-    <input type="text" id="questionInput" placeholder="Ask anything from your notes..." onkeypress="handleKey(event)" autofocus />
+    <input
+      type="text"
+      id="questionInput"
+      placeholder="Ask anything from your notes..."
+      onkeypress="handleKey(event)"
+      oninput="updateCharCounter()"
+      maxlength="1000"
+      autofocus
+    />
+    <!-- char counter: shows 0/1000 → updates as user types -->
+    <span class="char-counter" id="charCounter">0/1000</span>
     <button class="clear-btn" onclick="clearSession()">New Chat</button>
-    <button class="send-btn" onclick="sendMessage()" id="sendBtn">Send</button>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
   </div>
+
 </div>
 
 <script>
-const sessionId = 'user_' + Math.random().toString(36).substr(2, 9);
-document.getElementById('sessionInfo').textContent = 'Session: ' + sessionId;
+  // ── API base URL ──────────────────────────────────────────────────
+  // WHY a constant? If the API moves to a different host/port,
+  // change it here once instead of hunting through all fetch() calls.
+  // For production deployment, change this to your AWS ALB URL:
+  //   const API_BASE = 'https://api.yourproject.com';
+  const API_BASE = window.location.origin;
 
-function handleKey(e) {
-  if (e.key === 'Enter') sendMessage();
-}
+  // ── Session ID ────────────────────────────────────────────────────
+  // Generated once when page loads — random 9-char string.
+  // Sent with every /chat request so the server tracks this
+  // browser tab's conversation history separately from others.
+  // Format: user_abc123xyz
+  const sessionId = 'user_' + Math.random().toString(36).substr(2, 9);
+  document.getElementById('sessionInfo').textContent = 'Session: ' + sessionId;
 
-function formatText(text) {
-  // escape any accidental HTML first
-  text = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  // ── Check API status on page load ────────────────────────────────
+  // Calls /health immediately when page opens.
+  // Updates the badge in the header: green "API Online" or red "API Offline"
+  // WHY: User immediately knows if the server is running before typing.
+  async function checkApiStatus() {
+    const badge = document.getElementById('apiStatus');
+    try {
+      const res = await fetch(API_BASE + '/health', { signal: AbortSignal.timeout(5000) });
+      const data = await res.json();
 
-  // code blocks with language tag
-  text = text.replace(/```[a-z]*\n?([\s\S]*?)```/g, '<pre>$1</pre>');
-
-  // inline code
-  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  // bold
-  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-  // numbered list lines like "1. something"
-  text = text.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
-
-  // bullet lines starting with -
-  text = text.replace(/^[-]\s+(.+)$/gm, '<li>$1</li>');
-
-  // wrap consecutive li items in ol/ul
-  text = text.replace(/(<li>[\s\S]*?<\/li>)(\s*<li>)/g, '$1$2');
-
-  // line breaks become <br> except inside pre blocks
-  var parts = text.split(/(<pre>[\s\S]*?<\/pre>)/g);
-  parts = parts.map(function(part) {
-    if (part.startsWith('<pre>')) return part;
-    return part.replace(/\n/g, '<br>');
-  });
-  return parts.join('');
-}
-
-function addMessage(role, content, meta, isOutOfScope, isError) {
-  var box = document.getElementById('chatBox');
-  var div = document.createElement('div');
-  div.className = 'message ' + role;
-
-  var bubble = document.createElement('div');
-  bubble.className = 'bubble' + (isError ? ' error' : isOutOfScope ? ' out-of-scope' : '');
-  bubble.innerHTML = formatText(content);
-
-  var metaDiv = document.createElement('div');
-  metaDiv.className = 'meta';
-  metaDiv.textContent = meta;
-
-  div.appendChild(bubble);
-  div.appendChild(metaDiv);
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-
-function addSourceCard(sources, rewritten, originalQuestion) {
-  var box = document.getElementById('chatBox');
-
-  if (rewritten && rewritten !== originalQuestion) {
-    var rc = document.createElement('div');
-    rc.className = 'rewrite-card';
-    rc.innerHTML = '<div class="rewrite-title">Query sent to RAG (rewritten for context)</div>' + rewritten;
-    box.appendChild(rc);
+      if (res.ok && data.checks && data.checks.agent) {
+        // server is up AND agent is loaded → fully ready
+        badge.textContent  = 'API Online';
+        badge.className    = 'api-status online';
+      } else {
+        // server responded but agent not ready yet (still starting up)
+        badge.textContent  = 'API Starting...';
+        badge.className    = 'api-status offline';
+        // retry in 5 seconds — give server time to finish loading
+        setTimeout(checkApiStatus, 5000);
+      }
+    } catch {
+      // server not reachable at all
+      badge.textContent  = 'API Offline';
+      badge.className    = 'api-status offline';
+      // retry every 10 seconds — keeps checking until server starts
+      setTimeout(checkApiStatus, 10000);
+    }
   }
 
-  if (sources && sources.length > 0) {
-    var sc = document.createElement('div');
-    sc.className = 'source-card';
-    var html = '<div class="source-title">Sources from your notes (' + sources.length + ' chunks used)</div>';
-    sources.forEach(function(s, i) {
-      var content = typeof s === 'object' ? s.content : s;
-      html += '<div class="chunk"><strong>Chunk ' + (i + 1) + ':</strong> ' + content + '</div>';
-    });
-    sc.innerHTML = html;
-    box.appendChild(sc);
+  // Run status check immediately when page loads
+  checkApiStatus();
+
+  // ── Character counter ─────────────────────────────────────────────
+  // Updates the "0/1000" counter as user types.
+  // Changes colour as limit approaches:
+  //   0-799   → grey (normal)
+  //   800-949 → orange (warning)
+  //   950+    → red (danger — near limit)
+  function updateCharCounter() {
+    const input   = document.getElementById('questionInput');
+    const counter = document.getElementById('charCounter');
+    const len     = input.value.length;
+
+    counter.textContent = len + '/1000';
+
+    // remove all colour classes first then add the right one
+    counter.className = 'char-counter';
+    if (len >= 950)      counter.classList.add('danger');
+    else if (len >= 800) counter.classList.add('warning');
   }
 
-  box.scrollTop = box.scrollHeight;
-}
+  // ── Send on Enter key ─────────────────────────────────────────────
+  // Checks if Enter was pressed and calls sendMessage().
+  // WHY check key === 'Enter'? onkeypress fires for EVERY key.
+  function handleKey(e) {
+    if (e.key === 'Enter') sendMessage();
+  }
 
-function addTyping() {
-  var box = document.getElementById('chatBox');
-  var t = document.createElement('div');
-  t.id = 'typing';
-  t.className = 'typing';
-  t.innerHTML = '<span></span><span></span><span></span>';
-  box.appendChild(t);
-  box.scrollTop = box.scrollHeight;
-}
+  // ── Format markdown text to HTML ─────────────────────────────────
+  // Converts the LLM's markdown output to HTML for display.
+  // Order matters: escape HTML first, then apply markdown rules.
+  // WHY escape first? Prevents XSS — if LLM returns <script> tags,
+  // they become &lt;script&gt; and are shown as text, not executed.
+  function formatText(text) {
+    // STEP 1: escape special HTML characters → prevents XSS attacks
+    text = text
+      .replace(/&/g,  '&amp;')   // & → &amp;
+      .replace(/</g,  '&lt;')    // < → &lt;
+      .replace(/>/g,  '&gt;');   // > → &gt;
 
-function removeTyping() {
-  var t = document.getElementById('typing');
-  if (t) t.remove();
-}
+    // STEP 2: fenced code blocks → <pre> (dark background)
+    // ```python\ncode here\n``` → <pre>code here</pre>
+    // [a-z]* matches optional language label (python, bash, etc.)
+    text = text.replace(/```[a-z]*\n?([\s\S]*?)```/g, '<pre>$1</pre>');
 
-async function sendMessage() {
-  var input = document.getElementById('questionInput');
-  var question = input.value.trim();
-  if (!question) return;
+    // STEP 3: inline code → <code> (grey background)
+    // `variable` → <code>variable</code>
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-  var btn = document.getElementById('sendBtn');
-  btn.disabled = true;
-  input.value = '';
+    // STEP 4: bold text → <strong>
+    // **word** → <strong>word</strong>
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
-  addMessage('user', question, 'You - ' + new Date().toLocaleTimeString());
-  addTyping();
+    // STEP 5: numbered list items → <li>
+    // "1. item" → <li>item</li>
+    text = text.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
 
-  try {
-    var res = await fetch('http://127.0.0.1:8000/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: question, session_id: sessionId })
+    // STEP 6: bullet list items → <li>
+    // "- item" → <li>item</li>
+    text = text.replace(/^[-]\s+(.+)$/gm, '<li>$1</li>');
+
+    // STEP 7: line breaks → <br> (skip inside <pre> blocks)
+    // WHY skip pre? Code blocks need their own newlines preserved.
+    var parts = text.split(/(<pre>[\s\S]*?<\/pre>)/g);
+    parts = parts.map(function(part) {
+      if (part.startsWith('<pre>')) return part; // leave code blocks alone
+      return part.replace(/\n/g, '<br>');        // convert newlines to <br>
     });
-    var data = await res.json();
-    removeTyping();
+    return parts.join('');
+  }
 
-    var meta = 'DS Notes Assistant - ' + new Date().toLocaleTimeString();
-    addMessage('bot', data.answer, meta, !data.in_scope, false);
+  // ── Add a message bubble to the chat ─────────────────────────────
+  // Creates and appends a message div with bubble + metadata.
+  // role         → 'user' or 'bot' (controls alignment and colour)
+  // content      → the message text (will be formatted as markdown)
+  // meta         → small text below bubble (sender + time)
+  // isOutOfScope → true = yellow bubble (off-topic question)
+  // isError      → true = red bubble (connection/server error)
+  function addMessage(role, content, meta, isOutOfScope, isError) {
+    const box = document.getElementById('chatBox');
 
-    if (data.in_scope) {
-      addSourceCard(data.sources, data.rewritten_query, question);
+    // outer wrapper — controls left/right alignment
+    const div = document.createElement('div');
+    div.className = 'message ' + role;
+
+    // bubble — the speech bubble with message content
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble' +
+      (isError      ? ' error'        : '') +
+      (isOutOfScope ? ' out-of-scope' : '');
+    bubble.innerHTML = formatText(content); // convert markdown to HTML
+
+    // meta line — sender name + timestamp
+    const metaDiv = document.createElement('div');
+    metaDiv.className   = 'meta';
+    metaDiv.textContent = meta;
+
+    div.appendChild(bubble);
+    div.appendChild(metaDiv);
+    box.appendChild(div);
+
+    // auto-scroll to bottom so newest message is always visible
+    box.scrollTop = box.scrollHeight;
+  }
+
+  // ── Add source and rewrite cards ──────────────────────────────────
+  // Shows which chunks were retrieved and if query was rewritten.
+  // sources          → array of {content, source} objects from API
+  // rewritten        → the standalone query used for vector search
+  // originalQuestion → what the user actually typed
+  // WHY show rewritten? Transparency — user sees how their
+  // follow-up question was interpreted for vector search.
+  function addSourceCard(sources, rewritten, originalQuestion) {
+    const box = document.getElementById('chatBox');
+
+    // show rewrite card ONLY if query was actually changed
+    // if rewritten === original, no rewriting happened
+    if (rewritten && rewritten !== originalQuestion) {
+      const rc = document.createElement('div');
+      rc.className = 'rewrite-card';
+      rc.innerHTML =
+        '<div class="rewrite-title">🔄 Query sent to RAG (rewritten for context)</div>' +
+        formatText(rewritten);
+      box.appendChild(rc);
     }
 
-  } catch (err) {
-    removeTyping();
-    addMessage('bot', 'Cannot connect to server. Make sure uvicorn is running on port 8000.', 'Connection Error', false, true);
+    // show source card if any chunks were retrieved
+    if (sources && sources.length > 0) {
+      const sc = document.createElement('div');
+      sc.className = 'source-card';
+
+      let html = '<div class="source-title">📄 Sources from your notes (' +
+                 sources.length + ' chunks used)</div>';
+
+      // show each chunk with its number
+      sources.forEach(function(s, i) {
+        // content can be string or object depending on API version
+        const content = typeof s === 'object' ? s.content : s;
+        html += '<div class="chunk"><strong>Chunk ' + (i + 1) + ':</strong> ' +
+                content + '</div>';
+      });
+
+      sc.innerHTML = html;
+      box.appendChild(sc);
+    }
+
+    box.scrollTop = box.scrollHeight;
   }
 
-  btn.disabled = false;
-  input.focus();
-}
+  // ── Typing indicator ──────────────────────────────────────────────
+  // Shows three bouncing dots while waiting for API response.
+  // addTyping()    → creates and appends the dots element
+  // removeTyping() → finds and removes it when response arrives
+  function addTyping() {
+    const box = document.getElementById('chatBox');
+    const t   = document.createElement('div');
+    t.id        = 'typing';
+    t.className = 'typing';
+    t.innerHTML = '<span></span><span></span><span></span>';
+    box.appendChild(t);
+    box.scrollTop = box.scrollHeight;
+  }
 
-async function clearSession() {
-  try {
-    await fetch('http://127.0.0.1:8000/session/' + sessionId, { method: 'DELETE' });
-  } catch(e) {}
-  document.getElementById('chatBox').innerHTML = '';
-  addMessage('bot', 'New chat started! Ask me anything from your Data Science and Python notes.', 'DS Notes Assistant', false, false);
-}
+  function removeTyping() {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+  }
+
+  // ── Main send function ────────────────────────────────────────────
+  // Called when user clicks Send or presses Enter.
+  // Full flow:
+  //   1. Read and validate input
+  //   2. Show user message + typing indicator
+  //   3. POST to /chat API
+  //   4. Show response or error
+  //   5. Show source + rewrite cards if in scope
+  //   6. Re-enable input
+  async function sendMessage() {
+    const input    = document.getElementById('questionInput');
+    const sendBtn  = document.getElementById('sendBtn');
+    const question = input.value.trim();
+
+    // ── Guard: don't send empty input ────────────────────────────
+    if (!question) return;
+
+    // ── Guard: don't send if over limit ──────────────────────────
+    // API will reject it with 422 anyway, but better to catch here
+    if (question.length > 1000) {
+      addMessage('bot',
+        'Your question is too long (max 1000 characters). Please shorten it.',
+        'DS Notes Assistant', false, true);
+      return;
+    }
+
+    // ── Disable input while request is in flight ──────────────────
+    // WHY? Prevents user sending duplicate requests by clicking
+    // Send multiple times while waiting for slow Groq response.
+    sendBtn.disabled   = true;
+    input.value        = '';
+    updateCharCounter(); // reset counter to 0/1000
+
+    // show user's message immediately (don't wait for API)
+    addMessage('user', question, 'You — ' + new Date().toLocaleTimeString(),
+               false, false);
+    addTyping(); // show bouncing dots while waiting
+
+    try {
+      // ── POST to /chat ─────────────────────────────────────────
+      // timeout: 30s — Groq can be slow on first request
+      const res = await fetch(API_BASE + '/chat', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          question:   question,
+          session_id: sessionId   // links this request to our session
+        }),
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      });
+
+      removeTyping(); // remove dots before showing response
+
+      // ── Handle non-200 responses ──────────────────────────────
+      // FIXED: original code ignored non-200 status codes silently
+      // Now we show a meaningful error message for each case.
+      if (!res.ok) {
+        let errorMsg = 'Something went wrong. Please try again.';
+
+        if (res.status === 422) {
+          // 422 = Pydantic validation error (question too long, invalid chars)
+          const errData = await res.json().catch(() => ({}));
+          errorMsg = 'Invalid request: ' +
+            (errData.detail?.[0]?.msg || errData.detail || 'validation error');
+        } else if (res.status === 503) {
+          // 503 = server starting up, agent not ready yet
+          errorMsg = 'Server is starting up. Please wait a moment and try again.';
+        } else if (res.status === 500) {
+          // 500 = internal server error
+          errorMsg = 'Server error. Please try again in a moment.';
+        }
+
+        addMessage('bot', errorMsg,
+                   'DS Notes Assistant — ' + new Date().toLocaleTimeString(),
+                   false, true); // true = show red error bubble
+        return;
+      }
+
+      // ── Parse successful response ─────────────────────────────
+      const data = await res.json();
+      const meta = 'DS Notes Assistant — ' + new Date().toLocaleTimeString();
+
+      // show the answer
+      // isOutOfScope = !in_scope → shows yellow bubble for rejected questions
+      addMessage('bot', data.answer, meta, !data.in_scope, false);
+
+      // show source chunks and rewrite card only for in-scope answers
+      // out-of-scope questions have no sources (empty array from API)
+      if (data.in_scope) {
+        addSourceCard(data.sources, data.rewritten_query, question);
+      }
+
+      // update API status badge to confirmed online
+      const badge = document.getElementById('apiStatus');
+      badge.textContent = 'API Online';
+      badge.className   = 'api-status online';
+
+    } catch (err) {
+      removeTyping();
+
+      // ── Handle network errors ─────────────────────────────────
+      // AbortError = request timed out after 30 seconds
+      // Other errors = server not reachable (not running)
+      const errorMsg = err.name === 'AbortError'
+        ? 'Request timed out (30s). The server may be busy — please try again.'
+        : 'Cannot connect to server. Make sure uvicorn is running on port 8000.';
+
+      addMessage('bot', errorMsg,
+                 'Connection Error — ' + new Date().toLocaleTimeString(),
+                 false, true);
+
+      // update badge to offline
+      const badge = document.getElementById('apiStatus');
+      badge.textContent = 'API Offline';
+      badge.className   = 'api-status offline';
+
+    } finally {
+      // ── Always re-enable input ────────────────────────────────
+      // WHY finally? Runs whether request succeeded or failed.
+      // Without this, a failed request leaves the button disabled forever.
+      sendBtn.disabled = false;
+      input.focus();     // return focus to input for next question
+    }
+  }
+
+  // ── Clear session ─────────────────────────────────────────────────
+  // Calls DELETE /session/{id} to clear history on the server.
+  // Then clears the chat box and shows a fresh welcome message.
+  // WHY clear server-side? If we only clear the UI, the server
+  // still has the old history and follow-up rewriting breaks.
+  async function clearSession() {
+    try {
+      await fetch(API_BASE + '/session/' + sessionId, {
+        method: 'DELETE',
+        signal: AbortSignal.timeout(5000)
+      });
+    } catch {
+      // silently ignore if server is not running
+      // the UI still clears regardless
+    }
+
+    // clear all messages from the chat box
+    document.getElementById('chatBox').innerHTML = '';
+
+    // show fresh welcome message
+    addMessage('bot',
+      'New chat started! Ask me anything from your Data Science and Python notes.',
+      'DS Notes Assistant', false, false);
+  }
 </script>
 </body>
 </html>

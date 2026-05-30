@@ -1,57 +1,75 @@
 # docker-compose.yml
-# ─────────────────────────────────────────────────────
-# Defines how to run the DS Notes Assistant container.
+# ─────────────────────────────────────────────────────────────────────
+# PURPOSE: Defines how to run ds_rag_chatbot locally with Docker.
+#          One command starts everything: docker-compose up
 #
-# VERSION LINE REMOVED:
-# 'version: "3.8"' is obsolete in modern Docker
-# Removing it eliminates the startup warning
+# KEY CONCEPTS:
+#   build    → builds the Docker image from Dockerfile
+#   ports    → maps laptop port to container port (laptop:container)
+#   env_file → loads .env into container as environment variables
+#   volumes  → syncs folders between laptop and container
+#   restart  → what to do if container crashes
+#   healthcheck → verifies container is actually ready
 #
-# TWO VOLUMES MOUNTED:
-# chroma_db/ → vector data persists outside container
-# logs/      → log files accessible on your laptop
-# ─────────────────────────────────────────────────────
+# COMMON COMMANDS:
+#   docker-compose up              → start (shows logs)
+#   docker-compose up -d           → start in background
+#   docker-compose down            → stop and remove container
+#   docker-compose logs -f         → stream logs
+#   docker-compose build --no-cache → rebuild image from scratch
+#   docker-compose run --rm ds-rag-api python build_index.py
+# ─────────────────────────────────────────────────────────────────────
+
+# NOTE: 'version:' key is intentionally omitted.
+# It was deprecated in Docker Compose v2 and causes a warning if included.
 
 services:
 
   ds-rag-api:
 
-    # ── Build ──────────────────────────────────────────
-    # Build image from Dockerfile in current directory
+    # ── Build image from Dockerfile ───────────────────────────────────
+    # '.' means: look for Dockerfile in current directory
     build: .
 
-    # ── Container name ─────────────────────────────────
-    # Makes docker ps output readable
-    # Also used in: docker logs ds_rag_chatbot
+    # ── Human-readable container name ─────────────────────────────────
+    # Without this, Docker generates a random name
     container_name: ds_rag_chatbot
 
-    # ── Ports ──────────────────────────────────────────
-    # your_laptop:container
-    # Browser connects to localhost:8000
-    # Container uvicorn runs on 0.0.0.0:8000
+    # ── Run as root user inside container ────────────────────────────
+    # WHY: non-root appuser cannot bind to port 8000 in some environments
+    # "0" = root user ID in Linux
+    user: "0"
+
+    # ── Port mapping: laptop → container ─────────────────────────────
+    # Browser opens localhost:8000 → forwards to port 8000 inside container
     ports:
       - "8000:8000"
 
-    # ── Environment ────────────────────────────────────
-    # Loads your .env file into the container
-    # GROQ_API_KEY and all settings available inside
-    # .env is in .dockerignore so never baked into image
+    # ── Environment variables from .env file ──────────────────────────
+    # Loads GROQ_API_KEY and all other settings into the container
+    # .env is in .dockerignore → never baked into the image
     env_file:
       - .env
 
-    # ── Volumes ────────────────────────────────────────
-    # Syncs folders between laptop and container
+    # ── Volume mounts ─────────────────────────────────────────────────
     volumes:
-      # Vector database — persists between container restarts
-      # If not mounted: rebuild chroma_db every time
+      # vector index persists between container restarts
       - ./chroma_db:/app/chroma_db
-
-      # ADDED: Logs folder — read logs from your laptop
-      # Open logs/app.log in VS Code to see everything
-      # If not mounted: logs lost when container stops
+      # source .docx document accessible inside container
+      - ./data:/app/data
+      # log files readable on your laptop
       - ./logs:/app/logs
 
-    # ── Restart policy ─────────────────────────────────
-    # unless-stopped = restart if crashes
-    #                  but NOT if you manually docker-compose down
-    # Options: no | always | on-failure | unless-stopped
+    # ── Restart policy ────────────────────────────────────────────────
+    # restart automatically if crashes, but NOT on manual docker-compose down
     restart: unless-stopped
+
+    # ── Health check ──────────────────────────────────────────────────
+    # Docker calls GET /health every 30s to verify the app is ready
+    # If it fails 3 times → container marked unhealthy → Docker restarts it
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

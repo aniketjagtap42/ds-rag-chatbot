@@ -1,9 +1,76 @@
+# .dockerignore
+# ─────────────────────────────────────────────────────────────────────
+# PURPOSE: Tells Docker what NOT to copy into the image.
+#          Everything listed here is excluded from COPY . . 
+#
+# WHY THIS MATTERS:
+#   Without .dockerignore, COPY . . copies everything including
+#   venv/ (1-2 GB), chroma_db/ (vector data), .env (secrets),
+#   and data/ (your docx file) — making the image huge and insecure.
+#
+# RULE OF THUMB:
+#   If it's not needed to RUN the app, exclude it.
+#   Source code → include. Data, secrets, caches → exclude.
+# ─────────────────────────────────────────────────────────────────────
+
+# ── Python virtual environment ────────────────────────────────────────
+# venv/ can be 1-2 GB. Container installs its own deps via requirements.txt
 venv/
+.venv/
+env/
+
+# ── Python cache files ────────────────────────────────────────────────
+# Bytecode cache — regenerated automatically, not needed in image
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+
+# ── Secrets — NEVER bake into image ──────────────────────────────────
+# .env contains API keys — if baked into image, anyone who pulls
+# the image from ECR/DockerHub can read your API keys
 .env
+.env.*
+
+# ── Vector database ───────────────────────────────────────────────────
+# chroma_db/ is mounted as a volume at runtime (docker-compose volumes)
+# Baking it into the image means it can't be updated without rebuilding
+# Also adds hundreds of MB to the image unnecessarily
+# chroma_db/ included in image for AWS ECS deployment
+# data/ included in image for AWS ECS deployment
+# ── Source documents ──────────────────────────────────────────────────
+# data/ is mounted as a volume at runtime
+# Baking documents into image = document changes require full rebuild
+# data/ included in image for AWS ECS deployment
+# ── Logs ─────────────────────────────────────────────────────────────
+# Logs are written at runtime and mounted as volume
+# No point including them in the image
+logs/
+*.log
+
+# ── Git ───────────────────────────────────────────────────────────────
+# Git history not needed inside container
 .git/
 .gitignore
-logs/
+
+# ── Tests ─────────────────────────────────────────────────────────────
+# Test files not needed to run the production app
+test_*.py
+tests/
+
+# ── Documentation ─────────────────────────────────────────────────────
+README.md
 *.md
+
+# ── IDE and OS files ─────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# ── Docker files themselves ───────────────────────────────────────────
+# No need to include Docker config inside the container
+Dockerfile
+docker-compose.yml
+.dockerignore
