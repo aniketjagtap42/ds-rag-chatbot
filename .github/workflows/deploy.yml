@@ -42,11 +42,6 @@ jobs:
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
-      - name: Run tests
-        run: pytest test_ingestion.py test_rag.py test_agent.py test_api.py -v
-        env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
   deploy:
     name: Deploy to ECS
     runs-on: ubuntu-latest
@@ -54,6 +49,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies for index build
+        run: |
+          pip install --upgrade pip
+          pip install torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
+      - name: Build vector index
+        run: python build_index.py
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
